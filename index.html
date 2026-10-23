@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101114">
+  <title>CINEGRADE AI — Reference Color Studio</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="CINEGRADE AI inicio">
+        <span class="brand-mark">◉</span><span>CINEGRADE <b>AI</b></span>
+      </a>
+      <span class="top-label">REFERENCE COLOR STUDIO <i>EARLY ACCESS</i></span>
+    </header>
+
+    <main>
+      <section class="intro">
+        <p class="eyebrow">YOUR FOOTAGE. YOUR VISION.</p>
+        <h1>Un look cinematográfico.<br><span>Tu criterio creativo.</span></h1>
+        <p class="intro-copy">Carga un vídeo D-Log M, añade una referencia visual y explora una dirección de color en un solo espacio.</p>
+      </section>
+
+      <section class="workspace">
+        <div class="panel preview-panel">
+          <div class="panel-heading">
+            <div><p class="eyebrow">01 / FOOTAGE</p><h2>Tu vídeo</h2></div>
+            <label class="upload-button" for="videoInput">＋ Subir vídeo</label>
+            <input id="videoInput" type="file" accept="video/*,.mov,.mp4" hidden>
+          </div>
+          <div class="video-stage" id="videoStage">
+            <div class="empty-state" id="videoEmpty">
+              <span class="upload-icon">↑</span>
+              <strong>Arrastra tu vídeo aquí</strong>
+              <span>MP4 o MOV · La vista previa se procesa en tu navegador</span>
+            </div>
+            <video id="videoPreview" controls playsinline hidden></video>
+            <div class="stage-tag" id="stageTag" hidden>PREVIEW · LOOK ACTIVO</div>
+          </div>
+          <div class="video-meta"><span id="videoName">Ningún archivo seleccionado</span><span id="videoInfo">Vista previa local</span></div>
+          <div class="compare-row">
+            <span>Vista previa del look</span>
+            <label class="switch"><input type="checkbox" id="lookToggle" checked><span class="switch-ui"></span></label>
+          </div>
+        </div>
+
+        <aside class="panel controls-panel">
+          <div class="panel-heading">
+            <div><p class="eyebrow">02 / REFERENCE</p><h2>Inspiración visual</h2></div>
+          </div>
+          <label class="reference-drop" for="referenceInput" id="referenceDrop">
+            <img id="referencePreview" alt="Vista previa de referencia" hidden>
+            <span class="reference-placeholder" id="referenceEmpty"><span class="upload-icon">＋</span><b>Añadir imagen de referencia</b><small>Fotograma, fotografía o moodboard · JPG/PNG/WebP</small></span>
+          </label>
+          <input id="referenceInput" type="file" accept="image/*" hidden>
+          <p class="field-label">Dirección creativa</p>
+          <div class="look-grid" role="group" aria-label="Looks cinematográficos">
+            <button class="look-card selected" data-look="natural"><span class="look-swatch natural"></span><b>Cine natural</b><small>Contraste elegante</small></button>
+            <button class="look-card" data-look="teal"><span class="look-swatch teal"></span><b>Teal & orange</b><small>Frío y cálido</small></button>
+            <button class="look-card" data-look="film"><span class="look-swatch film"></span><b>Film 35mm</b><small>Suave y orgánico</small></button>
+            <button class="look-card" data-look="golden"><span class="look-swatch golden"></span><b>Travel golden</b><small>Luz cálida</small></button>
+            <button class="look-card" data-look="noir"><span class="look-swatch noir"></span><b>Moody</b><small>Sombras profundas</small></button>
+            <button class="look-card" data-look="clean"></span><span class="look-swatch clean"></span><b>Clean commercial</b><small>Limpio y preciso</small></button>
+          </div>
+          <div class="control">
+            <div class="control-head"><label for="intensity">Intensidad del look</label><output id="intensityOut">70%</output></div>
+            <input id="intensity" type="range" min="0" max="100" value="70">
+            <div class="range-labels"><span>Sutil</span><span>Marcado</span></div>
+          </div>
+          <div class="control">
+            <div class="control-head"><label for="contrast">Contraste</label><output id="contrastOut">+10</output></div>
+            <input id="contrast" type="range" min="-30" max="30" value="10">
+          </div>
+          <div class="control">
+            <div class="control-head"><label for="warmth">Temperatura</label><output id="warmthOut">+5</output></div>
+            <input id="warmth" type="range" min="-20" max="20" value="5">
+          </div>
+          <div class="control">
+            <div class="control-head"><label for="saturation">Saturación</label><output id="saturationOut">-5</output></div>
+            <input id="saturation" type="range" min="-30" max="30" value="-5">
+          </div>
+          <div class="toggle-line"><span>Proteger tonos de piel <small>Objetivo de diseño; no es una máscara IA activa</small></span><input type="checkbox" id="skinToggle" checked></div>
+          <div class="toggle-line"><span>Consistencia entre planos <small>Objetivo de diseño; requiere análisis por escena</small></span><input type="checkbox" id="consistencyToggle" checked></div>
+          <button class="primary-button" id="analyzeButton">✦ Analizar referencia</button>
+          <p class="notice" id="statusMessage" role="status">Modo demo: los controles afectan a la vista previa, no al archivo original.</p>
+        </aside>
+      </section>
+
+      <section class="workflow">
+        <p class="eyebrow">WORKFLOW</p>
+        <div class="workflow-grid">
+          <article><span>01</span><h3>Normalizar</h3><p>Transformación técnica D-Log M a un espacio de salida como Rec.709, con gestión correcta de color.</p></article>
+          <article><span>02</span><h3>Interpretar</h3><p>Extraer paleta, contraste y carácter de la referencia sin copiar sus píxeles literalmente.</p></article>
+          <article><span>03</span><h3>Etalonar</h3><p>Aplicar ajustes creativos y mantener continuidad entre planos con condiciones de luz distintas.</p></article>
+          <article><span>04</span><h3>Exportar</h3><p>Renderizar el vídeo final con códec, resolución y FPS elegidos, usando un motor de procesamiento real.</p></article>
+        </div>
+      </section>
+    </main>
+    <footer><span>© CINEGRADE AI</span><span>Prototipo frontend · Sin subida de archivos a servidores</span></footer>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
