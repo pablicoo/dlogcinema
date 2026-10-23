@@ -1,56 +1,21 @@
 <!doctype html>
-<html lang="es">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#101114">
-<title>CINEGRADE AI — Creative Direction Studio</title><link rel="stylesheet" href="styles.css">
-</head>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#101114"><title>CINEGRADE AI — Color Studio</title><link rel="stylesheet" href="styles.css"></head>
 <body><div class="app-shell">
-<header class="topbar"><a class="brand" href="#"><span class="brand-mark">◉</span><span>CINEGRADE <b>AI</b></span></a><span class="top-label">CREATIVE DIRECTION STUDIO <i>EARLY ACCESS</i></span></header>
-<main>
-<section class="intro"><p class="eyebrow">YOUR FOOTAGE. YOUR VISION.</p><h1>Un look cinematográfico.<br><span>Tu criterio creativo.</span></h1><p class="intro-copy">Carga tu vídeo D-Log M y deja que la dirección creativa nazca de la propia escena o guíala con una imagen de referencia.</p></section>
-<section class="workspace">
-<div class="panel preview-panel">
-<div class="panel-heading"><div><p class="eyebrow">01 / FOOTAGE</p><h2>Tu vídeo</h2></div><label class="upload-button" for="videoInput">＋ Subir vídeo</label><input id="videoInput" type="file" accept="video/*,.mov,.mp4" hidden></div>
-<div class="video-stage" id="videoStage"><div class="empty-state" id="videoEmpty"><span class="upload-icon">↑</span><strong>Arrastra tu vídeo aquí</strong><span>MP4 o MOV · Vista previa local</span></div><video id="videoPreview" controls playsinline hidden></video><div class="stage-tag" id="stageTag" hidden>PREVIEW · LOOK ACTIVO</div></div>
-<div class="video-meta"><span id="videoName">Ningún archivo seleccionado</span><span id="videoInfo">Vista previa local</span></div>
+<header class="topbar"><a class="brand" href="#"><span class="brand-mark">◉</span><span>CINEGRADE <b>AI</b></span></a><span class="top-label">BROWSER COLOR STUDIO <i>LOCAL PROCESSING</i></span></header>
+<main><section class="intro"><p class="eyebrow">YOUR FOOTAGE. YOUR VISION.</p><h1>Un look cinematográfico.<br><span>Tu criterio creativo.</span></h1><p class="intro-copy">Procesa el vídeo en tu navegador. Elige una dirección creativa automática o añade una imagen para orientar la paleta. Tus archivos no se suben a un servidor.</p></section>
+<section class="workspace"><div class="panel preview-panel"><div class="panel-heading"><div><p class="eyebrow">01 / FOOTAGE</p><h2>Tu vídeo</h2></div><label class="upload-button" for="videoInput">＋ Subir vídeo</label><input id="videoInput" type="file" accept="video/*,.mov,.mp4" hidden></div>
+<div class="video-stage" id="videoStage"><div class="empty-state" id="videoEmpty"><span class="upload-icon">↑</span><strong>Arrastra tu vídeo aquí</strong><span>MP4 o MOV · procesamiento local</span></div><video id="videoPreview" controls playsinline hidden></video><div class="stage-tag" id="stageTag" hidden>PREVIEW · LOOK ACTIVO</div></div><div class="video-meta"><span id="videoName">Ningún archivo seleccionado</span><span id="videoInfo">Los archivos permanecen en tu dispositivo</span></div>
 <div class="compare-row"><span>Vista previa del look</span><label class="switch"><input type="checkbox" id="lookToggle" checked><span class="switch-ui"></span></label></div>
-</div>
-<aside class="panel controls-panel">
-<div class="panel-heading"><div><p class="eyebrow">02 / CREATIVE DIRECTION</p><h2>Dirección creativa</h2></div></div>
-<div class="mode-switch" role="group" aria-label="Modo de dirección creativa">
-<button class="mode-button selected" data-mode="auto"><span>✦</span><b>Automática</b><small>La escena inspira el look</small></button>
-<button class="mode-button" data-mode="reference"><span>▧</span><b>Con referencia</b><small>Tú eliges la inspiración</small></button>
-</div>
-<div class="auto-explainer" id="autoExplainer"><b>Sin imagen de referencia</b><p>Elige un estilo cinematográfico y ajusta los controles. El análisis automático avanzado de la escena se conectará en la siguiente fase.</p></div>
-<div class="reference-section" id="referenceSection" hidden>
-<label class="reference-drop" for="referenceInput" id="referenceDrop"><img id="referencePreview" alt="Vista previa de referencia" hidden><span class="reference-placeholder" id="referenceEmpty"><span class="upload-icon">＋</span><b>Añadir foto o fotograma de referencia</b><small>JPG, PNG o WebP · Opcional</small></span></label>
-<input id="referenceInput" type="file" accept="image/*" hidden>
-<div class="reference-actions"><span id="referenceName">Ninguna referencia seleccionada</span><button id="removeReference" class="text-button" type="button" hidden>Quitar</button></div>
-<p class="hint">La referencia sirve para inspirar la paleta y el contraste. El análisis automático de la imagen aún no está conectado.</p>
-</div>
-<p class="field-label">Estilo cinematográfico</p>
-<div class="look-grid" role="group" aria-label="Looks cinematográficos">
-<button class="look-card selected" data-look="natural"><span class="look-swatch natural"></span><b>Cine natural</b><small>Contraste elegante</small></button>
-<button class="look-card" data-look="teal"><span class="look-swatch teal"></span><b>Teal & orange</b><small>Frío y cálido</small></button>
-<button class="look-card" data-look="film"><span class="look-swatch film"></span><b>Film 35mm</b><small>Suave y orgánico</small></button>
-<button class="look-card" data-look="golden"><span class="look-swatch golden"></span><b>Travel golden</b><small>Luz cálida</small></button>
-<button class="look-card" data-look="noir"><span class="look-swatch noir"></span><b>Moody</b><small>Sombras profundas</small></button>
-<button class="look-card" data-look="clean"><span class="look-swatch clean"></span><b>Clean commercial</b><small>Limpio y preciso</small></button>
-</div>
+<div class="export-box"><div><b>Renderizar vídeo final</b><p>Exporta un MP4 con el look aplicado. El primer uso descarga el motor de FFmpeg WebAssembly.</p></div><button class="primary-button" id="exportButton" disabled>↓ Exportar MP4</button><div class="progress-wrap" id="progressWrap" hidden><div class="progress-track"><span id="progressBar"></span></div><small id="progressText">Preparando motor de vídeo…</small></div></div></div>
+<aside class="panel controls-panel"><div class="panel-heading"><div><p class="eyebrow">02 / CREATIVE DIRECTION</p><h2>Agente de color</h2></div></div>
+<div class="agent-card"><span class="agent-orb">✦</span><div><b>Asistente de dirección de fotografía</b><p id="agentAdvice">Elige un estilo y analizaré tus ajustes para proponer una receta de color.</p></div></div>
+<div class="mode-switch"><button class="mode-button selected" data-mode="auto"><span>✦</span><b>Automática</b><small>Look elegido por el agente</small></button><button class="mode-button" data-mode="reference"><span>▧</span><b>Con referencia</b><small>Inspiración visual opcional</small></button></div>
+<div class="auto-explainer" id="autoExplainer"><b>Dirección automática</b><p>Selecciona un look. El agente local crea una receta de color basada en el estilo y tus controles, sin necesidad de foto.</p></div>
+<div class="reference-section" id="referenceSection" hidden><label class="reference-drop" for="referenceInput"><img id="referencePreview" alt="Referencia" hidden><span class="reference-placeholder" id="referenceEmpty"><span class="upload-icon">＋</span><b>Añadir foto o fotograma</b><small>JPG, PNG o WebP</small></span></label><input id="referenceInput" type="file" accept="image/*" hidden><div class="reference-actions"><span id="referenceName">Ninguna referencia</span><button id="removeReference" class="text-button" hidden>Quitar</button></div><p class="hint">El navegador extrae una paleta aproximada de la imagen para orientar la receta. No equivale a una IA multimodal entrenada.</p></div>
+<p class="field-label">Estilo cinematográfico</p><div class="look-grid">
+<button class="look-card selected" data-look="natural"><span class="look-swatch natural"></span><b>Cine natural</b><small>Contraste elegante</small></button><button class="look-card" data-look="teal"><span class="look-swatch teal"></span><b>Teal & orange</b><small>Frío y cálido</small></button><button class="look-card" data-look="film"><span class="look-swatch film"></span><b>Film 35mm</b><small>Suave y orgánico</small></button><button class="look-card" data-look="golden"><span class="look-swatch golden"></span><b>Travel golden</b><small>Luz cálida</small></button><button class="look-card" data-look="noir"><span class="look-swatch noir"></span><b>Moody</b><small>Sombras profundas</small></button><button class="look-card" data-look="clean"><span class="look-swatch clean"></span><b>Clean commercial</b><small>Limpio y preciso</small></button></div>
 <div class="control"><div class="control-head"><label for="intensity">Intensidad del look</label><output id="intensityOut">70%</output></div><input id="intensity" type="range" min="0" max="100" value="70"><div class="range-labels"><span>Sutil</span><span>Marcado</span></div></div>
-<div class="control"><div class="control-head"><label for="contrast">Contraste</label><output id="contrastOut">+10</output></div><input id="contrast" type="range" min="-30" max="30" value="10"></div>
-<div class="control"><div class="control-head"><label for="warmth">Temperatura</label><output id="warmthOut">+5</output></div><input id="warmth" type="range" min="-20" max="20" value="5"></div>
-<div class="control"><div class="control-head"><label for="saturation">Saturación</label><output id="saturationOut">-5</output></div><input id="saturation" type="range" min="-30" max="30" value="-5"></div>
-<div class="toggle-line"><span>Proteger tonos de piel <small>Función avanzada pendiente de implementar</small></span><input type="checkbox" id="skinToggle" checked></div>
-<div class="toggle-line"><span>Consistencia entre planos <small>Análisis por escena pendiente de implementar</small></span><input type="checkbox" id="consistencyToggle" checked></div>
-<button class="primary-button" id="applyButton">✦ Generar dirección creativa</button>
-<p class="notice" id="statusMessage" role="status">Prototipo: los looks afectan a la vista previa mediante filtros aproximados; no exportan un vídeo corregido.</p>
-</aside>
-</section>
-<section class="workflow"><p class="eyebrow">WORKFLOW</p><div class="workflow-grid">
-<article><span>01</span><h3>Normalizar</h3><p>Transformación técnica D-Log M a un espacio de salida como Rec.709.</p></article>
-<article><span>02</span><h3>Definir el look</h3><p>Modo automático con estilo elegido o referencia visual opcional.</p></article>
-<article><span>03</span><h3>Etalonar</h3><p>Aplicar ajustes creativos reales y mantener continuidad entre planos.</p></article>
-<article><span>04</span><h3>Exportar</h3><p>Renderizar un archivo final con resolución, códec y FPS configurables.</p></article>
-</div></section>
-</main><footer><span>© CINEGRADE AI</span><span>Prototipo frontend · Los archivos permanecen en tu navegador</span></footer></div><script src="app.js"></script></body></html>
+<div class="control"><div class="control-head"><label for="contrast">Contraste</label><output id="contrastOut">+10</output></div><input id="contrast" type="range" min="-30" max="30" value="10"></div><div class="control"><div class="control-head"><label for="warmth">Temperatura</label><output id="warmthOut">+5</output></div><input id="warmth" type="range" min="-20" max="20" value="5"></div><div class="control"><div class="control-head"><label for="saturation">Saturación</label><output id="saturationOut">-5</output></div><input id="saturation" type="range" min="-30" max="30" value="-5"></div>
+<div class="toggle-line"><span>Normalizar D-Log M a Rec.709<small>Conversión técnica exacta pendiente de calibración</small></span><input type="checkbox" id="normalizeToggle" checked></div>
+<button class="primary-button" id="applyButton">✦ Generar dirección creativa</button><p class="notice" id="statusMessage" role="status">Listo. La previsualización usa filtros de navegador; la exportación procesa el vídeo con FFmpeg.</p></aside></section>
+<section class="workflow"><p class="eyebrow">LOCAL WORKFLOW</p><div class="workflow-grid"><article><span>01</span><h3>Importar</h3><p>El vídeo se lee desde tu dispositivo, sin subirlo a un servidor.</p></article><article><span>02</span><h3>Dirigir</h3><p>Selecciona un look o añade una referencia visual opcional.</p></article><article><span>03</span><h3>Procesar</h3><p>FFmpeg WebAssembly aplica filtros al vídeo dentro del navegador.</p></article><article><span>04</span><h3>Exportar</h3><p>Descarga un MP4 nuevo. El rendimiento depende de tu ordenador.</p></article></div></section></main><footer><span>© CINEGRADE AI</span><span>Procesamiento local en el navegador · Requiere conexión para cargar FFmpeg</span></footer></div><script type="module" src="app.js"></script></body></html>

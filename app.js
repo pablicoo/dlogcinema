@@ -1,55 +1,25 @@
-(() => {
-const $=id=>document.getElementById(id);
-const videoInput=$("videoInput"),video=$("videoPreview"),empty=$("videoEmpty"),stageTag=$("stageTag");
-let videoUrl=null,imageUrl=null,selectedLook="natural",mode="auto";
-const looks={
-natural:{contrast:1.08,saturation:.96,sepia:0,hue:0,brightness:1},
-teal:{contrast:1.16,saturation:1.08,sepia:.12,hue:4,brightness:.97},
-film:{contrast:.94,saturation:.82,sepia:.16,hue:-3,brightness:1.03},
-golden:{contrast:1.04,saturation:1.05,sepia:.2,hue:-5,brightness:1.04},
-noir:{contrast:1.25,saturation:.65,sepia:0,hue:0,brightness:.88},
-clean:{contrast:1.03,saturation:1.02,sepia:0,hue:0,brightness:1.02}};
-function setStatus(s){$("statusMessage").textContent=s}
-function setMode(next){
- mode=next;
- document.querySelectorAll(".mode-button").forEach(b=>b.classList.toggle("selected",b.dataset.mode===mode));
- $("autoExplainer").hidden=mode!=="auto";
- $("referenceSection").hidden=mode!=="reference";
- $("applyButton").textContent=mode==="auto"?"✦ Generar dirección creativa":"✦ Aplicar dirección con referencia";
- setStatus(mode==="auto"?"Modo automático: el look se basa en el estilo elegido; el análisis semántico de escena aún está pendiente.":"Modo referencia: puedes añadir una imagen como guía visual. El matching automático de color aún está pendiente.");
-}
-document.querySelectorAll(".mode-button").forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.mode)));
-videoInput.addEventListener("change",()=>{
- const f=videoInput.files&&videoInput.files[0];if(!f)return;
- if(videoUrl)URL.revokeObjectURL(videoUrl);videoUrl=URL.createObjectURL(f);video.src=videoUrl;video.hidden=false;empty.hidden=true;stageTag.hidden=false;
- $("videoName").textContent=f.name;$("videoInfo").textContent=`${(f.size/1048576).toFixed(1)} MB · local`;updatePreview();
- setStatus("Vídeo cargado. Puedes elegir dirección automática o una referencia; el procesamiento actual es solo de previsualización.");
-});
-$("videoStage").addEventListener("dragover",e=>e.preventDefault());
-$("videoStage").addEventListener("drop",e=>{e.preventDefault();const f=[...e.dataTransfer.files].find(x=>x.type.startsWith("video/")||/\.(mov|mp4|m4v|webm)$/i.test(x.name));if(!f)return;const dt=new DataTransfer();dt.items.add(f);videoInput.files=dt.files;videoInput.dispatchEvent(new Event("change"))});
-$("referenceInput").addEventListener("change",()=>{
- const f=$("referenceInput").files&&$("referenceInput").files[0];if(!f)return;
- if(imageUrl)URL.revokeObjectURL(imageUrl);imageUrl=URL.createObjectURL(f);$("referencePreview").src=imageUrl;$("referencePreview").hidden=false;$("referenceEmpty").hidden=true;$("referenceName").textContent=f.name;$("removeReference").hidden=false;
- setStatus("Referencia cargada localmente. En esta versión todavía no se analiza automáticamente su paleta.");
-});
-$("removeReference").addEventListener("click",()=>{
- $("referenceInput").value="";$("referencePreview").hidden=true;$("referencePreview").removeAttribute("src");$("referenceEmpty").hidden=false;$("referenceName").textContent="Ninguna referencia seleccionada";$("removeReference").hidden=true;
- if(imageUrl)URL.revokeObjectURL(imageUrl);imageUrl=null;setStatus("Referencia eliminada. Puedes continuar sin referencia o añadir otra.");
-});
-document.querySelectorAll(".look-card").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll(".look-card").forEach(x=>x.classList.remove("selected"));b.classList.add("selected");selectedLook=b.dataset.look;updatePreview()}));
-const bind=(id,out,fmt)=>$(id).addEventListener("input",()=>{$(out).textContent=fmt(Number($(id).value));updatePreview()});
-bind("intensity","intensityOut",v=>`${v}%`);bind("contrast","contrastOut",v=>v>0?`+${v}`:`${v}`);bind("warmth","warmthOut",v=>v>0?`+${v}`:`${v}`);bind("saturation","saturationOut",v=>v>0?`+${v}`:`${v}`);
-$("lookToggle").addEventListener("change",updatePreview);
-function updatePreview(){
- if(video.hidden)return;if(!$("lookToggle").checked){video.style.filter="none";return}
- const l=looks[selectedLook],i=Number($("intensity").value)/100,c=1+(l.contrast-1)*i+Number($("contrast").value)/100,s=1+(l.saturation-1)*i+Number($("saturation").value)/100,sepia=Math.max(0,l.sepia*i+Number($("warmth").value)/300),hue=l.hue*i,brightness=1+(l.brightness-1)*i;
- video.style.filter=`contrast(${Math.max(.5,c)}) saturate(${Math.max(0,s)}) sepia(${Math.min(.5,sepia)}) hue-rotate(${hue}deg) brightness(${brightness})`;
-}
-$("applyButton").addEventListener("click",()=>{
- if(video.hidden){setStatus("Primero sube un vídeo para previsualizar la dirección creativa.");videoInput.click();return}
- if(mode==="reference"&&!imageUrl){setStatus("Has elegido el modo con referencia, pero no has añadido una imagen. Sube una o cambia a modo Automática.");$("referenceInput").click();return}
- setStatus(mode==="auto"?"Dirección creativa aplicada a la previsualización con el look y los controles elegidos. El análisis IA de la escena y la exportación real todavía deben implementarse.":"Look aplicado a la previsualización. La referencia está cargada, pero el análisis automático de paleta y la exportación real todavía deben implementarse.");
- updatePreview();
-});
+import { FFmpeg } from "https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.js";
+import { toBlobURL } from "https://unpkg.com/@ffmpeg/util@0.12.1/dist/esm/index.js";
+const $=id=>document.getElementById(id);let videoFile=null,videoUrl=null,imageUrl=null,referenceFile=null,look="natural",mode="auto",ffmpeg=null,loading=false;
+const styles={natural:{contrast:1.08,sat:0.96,warm:0},teal:{contrast:1.16,sat:1.08,warm:-3},film:{contrast:.94,sat:.82,warm:3},golden:{contrast:1.04,sat:1.05,warm:6},noir:{contrast:1.25,sat:.65,warm:0},clean:{contrast:1.03,sat:1.02,warm:0}};
+function status(s){$("statusMessage").textContent=s}
+function setMode(m){mode=m;document.querySelectorAll(".mode-button").forEach(b=>b.classList.toggle("selected",b.dataset.mode===m));$("autoExplainer").hidden=m!=="auto";$("referenceSection").hidden=m!=="reference";$("applyButton").textContent=m==="auto"?"✦ Generar dirección creativa":"✦ Aplicar dirección con referencia";updateAdvice()}
+document.querySelectorAll(".mode-button").forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
+$("videoInput").onchange=()=>{const f=$("videoInput").files?.[0];if(!f)return;videoFile=f;if(videoUrl)URL.revokeObjectURL(videoUrl);videoUrl=URL.createObjectURL(f);$("videoPreview").src=videoUrl;$("videoPreview").hidden=false;$("videoEmpty").hidden=true;$("stageTag").hidden=false;$("videoName").textContent=f.name;$("videoInfo").textContent=`${(f.size/1048576).toFixed(1)} MB · local`;$("exportButton").disabled=false;preview();status("Vídeo listo. Elige un look y pulsa Exportar MP4 para renderizarlo.");};
+$("videoStage").ondragover=e=>e.preventDefault();$("videoStage").ondrop=e=>{e.preventDefault();const f=[...e.dataTransfer.files].find(x=>x.type.startsWith("video/"));if(f){const dt=new DataTransfer();dt.items.add(f);$("videoInput").files=dt.files;$("videoInput").dispatchEvent(new Event("change"));}};
+$("referenceInput").onchange=()=>{const f=$("referenceInput").files?.[0];if(!f)return;referenceFile=f;if(imageUrl)URL.revokeObjectURL(imageUrl);imageUrl=URL.createObjectURL(f);$("referencePreview").src=imageUrl;$("referencePreview").hidden=false;$("referenceEmpty").hidden=true;$("referenceName").textContent=f.name;$("removeReference").hidden=false;sampleReference(f);updateAdvice();};
+let referenceWarmth=0;
+function sampleReference(file){const img=new Image();img.onload=()=>{try{const c=document.createElement("canvas");c.width=64;c.height=64;const ctx=c.getContext("2d",{willReadFrequently:true});ctx.drawImage(img,0,0,64,64);const d=ctx.getImageData(0,0,64,64).data;let r=0,b=0,n=0;for(let i=0;i<d.length;i+=16){r+=d[i];b+=d[i+2];n++}referenceWarmth=Math.max(-8,Math.min(8,Math.round(((r-b)/n)/12)));updateAdvice()}catch(e){referenceWarmth=0}};img.src=URL.createObjectURL(file)}
+$("removeReference").onclick=()=>{referenceFile=null;$("referenceInput").value="";$("referencePreview").hidden=true;$("referenceEmpty").hidden=false;$("referenceName").textContent="Ninguna referencia";$("removeReference").hidden=true;if(imageUrl)URL.revokeObjectURL(imageUrl);imageUrl=null;referenceWarmth=0;updateAdvice()};
+document.querySelectorAll(".look-card").forEach(b=>b.onclick=()=>{document.querySelectorAll(".look-card").forEach(x=>x.classList.remove("selected"));b.classList.add("selected");look=b.dataset.look;preview();updateAdvice()});
+function bind(id,out,fmt){$(id).oninput=()=>{$(out).textContent=fmt(+$(id).value);preview();updateAdvice()}}
+bind("intensity","intensityOut",v=>v+"%");bind("contrast","contrastOut",v=>v>0?"+"+v:""+v);bind("warmth","warmthOut",v=>v>0?"+"+v:""+v);bind("saturation","saturationOut",v=>v>0?"+"+v:""+v);
+$("lookToggle").onchange=preview;
+function values(){const s=styles[look],i=+$("intensity").value/100;return {contrast:Math.max(.5,1+(s.contrast-1)*i+(+$("contrast").value)/100),sat:Math.max(0,1+(s.sat-1)*i+(+$("saturation").value)/100),warm:(s.warm*i+(+$("warmth").value)*.25+(mode==="reference"?referenceWarmth:0)),brightness:look==="noir"?.88:1};}
+function preview(){if($("videoPreview").hidden)return;const v=values();$("videoPreview").style.filter=$("lookToggle").checked?`contrast(${v.contrast}) saturate(${v.sat}) sepia(${Math.max(0,Math.min(.5,v.warm/35))}) brightness(${v.brightness})`:"none"}
+function updateAdvice(){const names={natural:"cine natural, tonos contenidos y contraste moderado",teal:"sombras frías y altas luces cálidas",film:"contraste suave, saturación reducida y sensación orgánica",golden:"temperatura cálida y color de viaje",noir:"sombras densas y paleta desaturada",clean:"color limpio y contraste controlado"};let msg=`Recomendación: ${names[look]}. Intensidad ${$("intensity").value}%, contraste ${$("contrast").value}, saturación ${$("saturation").value}.`;if(mode==="reference"&&referenceFile)msg+=` La imagen de referencia tiene un balance aproximado ${referenceWarmth>1?"cálido":referenceWarmth< -1?"frío":"neutro"}; se usa como orientación básica, no como matching cinematográfico completo.`;else if(mode==="reference")msg+=" Añade una imagen para estimar su temperatura dominante.";else msg+=" Modo automático basado en el look seleccionado y tus controles; no es todavía un agente IA que entienda semánticamente la escena."; $("agentAdvice").textContent=msg;}
+$("applyButton").onclick=()=>{if(!videoFile){status("Primero sube un vídeo.");$("videoInput").click();return}if(mode==="reference"&&!referenceFile){status("Sube una imagen de referencia o cambia al modo Automática.");$("referenceInput").click();return}preview();updateAdvice();status("Dirección creativa preparada. Pulsa «Exportar MP4» para procesar el archivo completo.")};
+async function loadEngine(){if(ffmpeg)return ffmpeg;if(loading)throw Error("El motor ya se está cargando");loading=true;$("progressWrap").hidden=false;$("progressText").textContent="Descargando motor FFmpeg WebAssembly…";ffmpeg=new FFmpeg();ffmpeg.on("progress",({progress})=>{$("progressBar").style.width=`${Math.round(progress*100)}%`;$("progressText").textContent=`Procesando vídeo: ${Math.round(progress*100)}%`});const base="https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd";await ffmpeg.load({coreURL:await toBlobURL(`${base}/ffmpeg-core.js`,"text/javascript"),wasmURL:await toBlobURL(`${base}/ffmpeg-core.wasm`,"application/wasm")});loading=false;return ffmpeg}
+function filterString(){const v=values(),parts=[`eq=contrast=${v.contrast.toFixed(3)}:saturation=${v.sat.toFixed(3)}:brightness=${(v.brightness-1).toFixed(3)}`];if(v.warm>0)parts.push(`colorbalance=rs=${Math.min(.12,v.warm/100).toFixed(3)}:gs=0:bs=${(-Math.min(.12,v.warm/130)).toFixed(3)}`);else if(v.warm<0)parts.push(`colorbalance=rs=${Math.max(-.12,v.warm/130).toFixed(3)}:gs=0:bs=${Math.min(.12,-v.warm/100).toFixed(3)}`);if($("normalizeToggle").checked)parts.unshift("curves=all='0/0 0.25/0.20 0.75/0.82 1/1");return parts.join(",")}
+$("exportButton").onclick=async()=>{if(!videoFile)return;const btn=$("exportButton");btn.disabled=true;$("progressWrap").hidden=false;$("progressBar").style.width="0%";try{status("Preparando procesamiento local. No cierres esta pestaña.");const engine=await loadEngine();$("progressText").textContent="Preparando archivo…";const ext=(videoFile.name.split(".").pop()||"mp4").toLowerCase();const input=`input.${["mov","mp4","m4v","webm"].includes(ext)?ext:"mp4"}`;await engine.writeFile(input,new Uint8Array(await videoFile.arrayBuffer()));const output="cinegrade-export.mp4";const args=["-i",input,"-vf",filterString(),"-c:v","libx264","-preset","ultrafast","-crf","18","-pix_fmt","yuv420p","-c:a","aac","-b:a","192k","-movflags","+faststart",output];await engine.exec(args);const data=await engine.readFile(output);const url=URL.createObjectURL(new Blob([data.buffer],{type:"video/mp4"}));const a=document.createElement("a");a.href=url;a.download=`${videoFile.name.replace(/\.[^.]+$/,"")}-cinegrade.mp4`;a.click();setTimeout(()=>URL.revokeObjectURL(url),60000);status("Exportación completada. Se ha descargado el MP4 procesado en tu dispositivo.");$("progressText").textContent="Exportación completada";$("progressBar").style.width="100%";await engine.deleteFile(input);await engine.deleteFile(output)}catch(e){console.error(e);status("No se pudo procesar el vídeo. Prueba con un archivo más corto o un navegador Chromium actualizado. Detalle: "+(e?.message||e));$("progressText").textContent="Error de procesamiento"}finally{btn.disabled=false}};
 window.addEventListener("beforeunload",()=>{if(videoUrl)URL.revokeObjectURL(videoUrl);if(imageUrl)URL.revokeObjectURL(imageUrl)});
-})();
